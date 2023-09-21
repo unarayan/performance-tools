@@ -1,0 +1,14 @@
+[90m2023/09/14 21:06:59 [0m[32mINF[0m MediaMTX v1.0.0
+[90m2023/09/14 21:06:59 [0m[32mINF[0m [RTSP] listener opened on :8554 (TCP), :8000 (UDP/RTP), :8001 (UDP/RTCP)
+[90m2023/09/14 21:06:59 [0m[32mINF[0m [RTMP] listener opened on :1935
+[90m2023/09/14 21:06:59 [0m[32mINF[0m [HLS] listener opened on :8888
+[90m2023/09/14 21:06:59 [0m[32mINF[0m [WebRTC] listener opened on :8889 (HTTP)
+[90m2023/09/14 21:06:59 [0m[32mINF[0m [SRT] listener opened on :8890 (UDP)
+[90m2023/09/14 21:06:59 [0m[32mINF[0m [RTSP] [conn 127.0.0.1:35032] opened
+[90m2023/09/14 21:06:59 [0m[32mINF[0m [RTSP] [session 050a0bd7] created by 127.0.0.1:35032
+[90m2023/09/14 21:06:59 [0m[32mINF[0m [RTSP] [session 050a0bd7] is publishing to path 'camera_0', 1 track (H264)
+[90m2023/09/14 21:07:32 [0m[32mINF[0m [RTSP] [conn 127.0.0.1:37656] opened
+[90m2023/09/14 21:07:32 [0m[32mINF[0m [RTSP] [session 26a6a8d7] created by 127.0.0.1:37656
+[90m2023/09/14 21:07:33 [0m[32mINF[0m [RTSP] [session 26a6a8d7] is reading from path 'camera_0', with UDP, 1 track (H264)
+[90m2023/09/14 21:07:38 [0m[32mINF[0m [RTSP] [session 26a6a8d7] destroyed (torn down by 127.0.0.1:37656)
+[90m2023/09/14 21:07:38 [0m[32mINF[0m [RTSP] [conn 127.0.0.1:37656] closed (EOF)

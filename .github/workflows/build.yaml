@@ -1,0 +1,32 @@
+name: Build docker images
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  build_benchmark:
+      runs-on: ubuntu-latest
+      steps:
+          - name: Checkout code
+            uses: actions/checkout@v3
+          - name: Make benchmark Docker images
+            run: |
+              make build-benchmark
+  build_XPU:
+      runs-on: ubuntu-latest
+      steps:
+          - name: Checkout code
+            uses: actions/checkout@v3
+          - name: Make xpu Docker images
+            run: |
+              make build-xpu
+  build_IGT:
+      runs-on: ubuntu-latest
+      steps:
+          - name: Checkout code
+            uses: actions/checkout@v3
+          - name: Build igt Docker images
+            run: |
+              make build-igt
