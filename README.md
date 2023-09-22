@@ -1,4 +1,4 @@
-# Automated Self Checkout
+# Performance Evaluation Service
 
 ![CodeQL](https://github.com/intel-retail/performance-tools/actions/workflows/codeql.yaml/badge.svg?branch=main) ![GolangTest](https://github.com/intel-retail/performance-tools/actions/workflows/gotest.yaml/badge.svg?branch=main) ![DockerImageBuild](https://github.com/intel-retail/performance-tools/actions/workflows/build.yaml/badge.svg?branch=main)  [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/intel-retail/performance-tools/badge)](https://api.securityscorecards.dev/projects/github.com/intel-retail/performance-tools)
 
