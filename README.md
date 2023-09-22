@@ -1,10 +1,10 @@
 # Performance Evaluation Service
 
-![CodeQL](https://github.com/intel-retail/performance-tools/actions/workflows/codeql.yaml/badge.svg?branch=main) ![GolangTest](https://github.com/intel-retail/performance-tools/actions/workflows/gotest.yaml/badge.svg?branch=main) ![DockerImageBuild](https://github.com/intel-retail/performance-tools/actions/workflows/build.yaml/badge.svg?branch=main)  [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/intel-retail/performance-tools/badge)](https://api.securityscorecards.dev/projects/github.com/intel-retail/performance-tools)
+![CodeQL](https://github.com/intel-retail/performance-tools/actions/workflows/codeql.yaml/badge.svg?branch=main) ![DockerImageBuild](https://github.com/intel-retail/performance-tools/actions/workflows/build.yaml/badge.svg?branch=main)  [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/intel-retail/performance-tools/badge)](https://api.securityscorecards.dev/projects/github.com/intel-retail/performance-tools)
 
 ## Documentation
 
-- [Open source code for setup, install, and execution of software, with complete developer documentation](https://intel-retail.github.io/performance-tools/)
+- [Open source code for setup, install, and execution of software, with complete developer documentation](https://intel-retail.github.io/performance-tools/index)
 - [Developer focused website to enable developers to engage and build our partner community](https://www.intel.com/content/www/us/en/developer/articles/reference-implementation/automated-self-checkout.html)
 
 ## Disclaimer
