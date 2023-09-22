@@ -5,13 +5,7 @@
 ## Documentation
 
 - [Open source code for setup, install, and execution of software, with complete developer documentation](https://intel-retail.github.io/performance-tools/)
-- [Developer focused website to enable developers to engage and build our partner community](https://www.intel.com/content/www/us/en/developer/articles/reference-implementation/performance-tools.html)
-- [LinkedIn blog illustrating the automated self checkout use case more in detail](https://www.linkedin.com/pulse/retail-innovation-unlocked-open-source-vision-enabled-mohideen/)
-
-## Known issues
-
-- Once barcode is detected and decoded, barcode label text is displayed inside the object even if barcode is not visible.
-- Overlapping object detection label (gvatrack adds its own labels)
+- [Developer focused website to enable developers to engage and build our partner community](https://www.intel.com/content/www/us/en/developer/articles/reference-implementation/automated-self-checkout.html)
 
 ## Disclaimer
 
