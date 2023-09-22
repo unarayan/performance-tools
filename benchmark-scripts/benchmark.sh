@@ -211,7 +211,6 @@ do
 
   # docker-run needs to run in it's directory for the file paths to work
   cd ../
-#  pwd
 
   echo "DEBUG: docker-run.sh" "$@"
 
