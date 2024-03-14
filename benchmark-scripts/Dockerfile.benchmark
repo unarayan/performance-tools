@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2023 Intel Corporation.
+# Copyright (C) 2024 Intel Corporation.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -46,4 +46,6 @@ RUN mkdir -p "/opt/intel/pcm-bin/bin" && mkdir -p "/opt/intel/pcm-bin/lib" && \
     cp -r "$PCM_DIRECTORY/pcm/build/lib" "/opt/intel/pcm-bin/" && \
     rm -rf "$PCM_DIRECTORY/pcm"
 
-COPY . .
+COPY collect_platform_metrics.sh collect_platform_metrics.sh
+
+ENTRYPOINT ["./collect_platform_metrics.sh"]
