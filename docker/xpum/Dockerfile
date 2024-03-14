@@ -21,7 +21,7 @@ rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-COPY requirements-xpu.txt /requirements.txt
+COPY requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 RUN pip install gunicorn[gthread]
 WORKDIR /opt/venv
