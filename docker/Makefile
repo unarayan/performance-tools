@@ -21,4 +21,4 @@ run-igt:
 	docker run -d --rm --name=igt -v `pwd`/results:/tmp/results --privileged benchmark:igt
 
 run-xpum:
-	docker run -itd -v /sys/firmware/acpi/tables/MCFG:/pcm/sys/firmware/acpi/tables/MCFG:ro -v /proc/bus/pci/:/pcm/proc/bus/pci/ -v /proc/sys/kernel/nmi_watchdog:/pcm/proc/sys/kernel/nmi_watchdog -v `pwd`/results:/tmp/xpumdump/  --cap-drop ALL --cap-add CAP_SYS_ADMIN --user root -e XPUM_REST_NO_TLS=1 --device /dev/dri:/dev/dri --device /dev/cpu:/dev/cpu --name=xpum benchmark:xpu
+	docker run -d --rm -v /sys/firmware/acpi/tables/MCFG:/pcm/sys/firmware/acpi/tables/MCFG:ro -v /proc/bus/pci/:/pcm/proc/bus/pci/ -v /proc/sys/kernel/nmi_watchdog:/pcm/proc/sys/kernel/nmi_watchdog -v `pwd`/results:/tmp/xpumdump/  --cap-drop ALL --cap-add CAP_SYS_ADMIN --user root -e XPUM_REST_NO_TLS=1 --device /dev/dri:/dev/dri --device /dev/cpu:/dev/cpu --name=xpum benchmark:xpu
