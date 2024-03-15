@@ -13,10 +13,10 @@ services:
     container_name: platform
     privileged: true
     volumes:
-      - ./results:/tmp/results
+      - $log_dir:/tmp/results
   igt:
     image: benchmark:igt
     container_name: igt
     privileged: true
     volumes:
-      - ./results:/tmp/results
+      - $log_dir:/tmp/results
