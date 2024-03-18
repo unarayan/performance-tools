@@ -1,0 +1,22 @@
+#
+# Copyright (C) 2024 Intel Corporation.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+
+ ## Current Developer Toolbox doesn't support environment files, make sure to remove any files or environment variables starting with $
+version: '3'
+services:
+  platform:
+    image: benchmark:platform
+    container_name: platform
+    privileged: true
+    volumes:
+      - $log_dir:/tmp/results
+  igt:
+    image: benchmark:igt
+    container_name: igt
+    privileged: true
+    volumes:
+      - $log_dir:/tmp/results

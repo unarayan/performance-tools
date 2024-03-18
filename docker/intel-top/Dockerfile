@@ -34,6 +34,6 @@ WORKDIR /igt
 RUN git config --global http.proxy $HTTP_PROXY; git clone https://gitlab.freedesktop.org/drm/igt-gpu-tools.git; cd igt-gpu-tools; git checkout 2b29e8ac07fbcfadc48b9d60e4d736a6e3b289ab
 
 RUN cd  igt-gpu-tools; meson build; ninja -C build; cd build; ninja install
-COPY igt-entrypoint.sh entrypoint.sh
+COPY entrypoint.sh entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]

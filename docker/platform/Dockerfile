@@ -46,6 +46,6 @@ RUN mkdir -p "/opt/intel/pcm-bin/bin" && mkdir -p "/opt/intel/pcm-bin/lib" && \
     cp -r "$PCM_DIRECTORY/pcm/build/lib" "/opt/intel/pcm-bin/" && \
     rm -rf "$PCM_DIRECTORY/pcm"
 
-COPY collect_platform_metrics.sh collect_platform_metrics.sh
+COPY entrypoint.sh entrypoint.sh
 
-ENTRYPOINT ["./collect_platform_metrics.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
