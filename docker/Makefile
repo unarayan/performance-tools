@@ -1,3 +1,6 @@
+# Copyright © 2024 Intel Corporation. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 .PHONY: build-all build-platform build-igt build-xpum run-platform run-igt run-xpum
 
 build-all: build-platform build-igt build-xpum
