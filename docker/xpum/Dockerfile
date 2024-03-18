@@ -1,10 +1,17 @@
+# Copyright (C) 2021-2023 Intel Corporation.
+# SPDX-License-Identifier: MIT
 #
-# Copyright (C) 2024 Intel Corporation.
+# Prerequisite:
+# ./build-deb/xpumanager_xxxxx+ubuntu22.04_amd64.deb
+# ./requirements.txt (copy from rest)
+# ./third-party-programs.txt
 #
-# SPDX-License-Identifier: Apache-2.0
+# Build by:
+# docker build -f Dockerfile.ubuntu.22.04 -t intel-xpumanager:ubuntu22.04 .
 #
-
-FROM ubuntu:22.04 as builder
+# Run by (refer to deployment/docker/README.md for details):
+# docker run --cap-drop ALL --cap-add CAP_SYS_ADMIN --user root -e XPUM_REST_NO_TLS=1 -e XPUM_EXPORTER_NO_AUTH=1 -e XPUM_EXPORTER_ONLY=1 --publish 127.0.0.1:29999:29999 --device /dev/dri:/dev/dri --name=xpum intel-xpumanager:ubuntu22.04
+FROM ubuntu:jammy-20231128@sha256:8eab65df33a6de2844c9aefd19efe8ddb87b7df5e9185a4ab73af936225685bb as builder
 ENV HOME=/home/nobody
 ENV no_proxy=localhost,127.0.0.1
 ENV NO_PROXY=localhost,127.0.0.1
@@ -34,7 +41,7 @@ RUN find . -name "easy_install*" -exec rm -rf {} \; ;exit 0
 RUN find . -name "setuptools*" -exec rm -rf {} \; ;exit 0
 RUN find . -name "__pycache__" -exec rm -rf {} \; ;exit 0
 
-FROM ubuntu:22.04
+FROM ubuntu:jammy-20231128@sha256:8eab65df33a6de2844c9aefd19efe8ddb87b7df5e9185a4ab73af936225685bb
 
 ENV HOME=/home/nobody
 ENV no_proxy=localhost,127.0.0.1
@@ -43,31 +50,41 @@ ENV NO_PROXY=localhost,127.0.0.1
 # don't ask anything
 ARG DEBIAN_FRONTEND=noninteractive
 
+# put tpp file in the container
+COPY third-party-programs.txt .
+
 WORKDIR /tmp/work
 
 RUN apt-get update && \
+  apt-get -y upgrade && \
   apt-get install -y --no-install-recommends wget gnupg2 ca-certificates && \
   wget -qO - https://repositories.intel.com/graphics/intel-graphics.key | gpg --dearmor --output /usr/share/keyrings/intel-graphics.gpg && \
-  wget https://github.com/intel/xpumanager/releases/download/V1.2.24/xpumanager_1.2.24_20231120.070911.ddc18e8a.u22.04_amd64.deb && \
-  echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/intel-graphics.gpg] https://repositories.intel.com/graphics/ubuntu jammy flex' | \
+  echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/intel-graphics.gpg] https://repositories.intel.com/gpu/ubuntu jammy/production/2328 unified' | \
   tee /etc/apt/sources.list.d/intel.gpu.jammy.list && \
   apt-get update && \
   apt-get install -y --no-install-recommends \
+    pciutils \
     dmidecode \
+    libcurl4 \
+    iproute2 \
     python3 \
     libnl-genl-3-200 \
-    libmfx-tools \
     intel-gsc \
     intel-level-zero-gpu \
     level-zero \
-    libdrm2 && \
+    libdrm2 \
+    intel-metrics-discovery \
+    intel-metrics-library && \
   apt-get remove -y wget gnupg2 ca-certificates && \
   apt-get autoremove -y && \
   rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/venv /opt/venv
 
+COPY build-deb/*.deb .
 RUN ldconfig && dpkg -i --force-all *.deb
+
+RUN sed -i 's/KERNEL_MESSAGES_SOURCE = journalctl/KERNEL_MESSAGES_SOURCE = dmesg/' /usr/lib/xpum/config/diagnostics.conf
 
 WORKDIR /
 
@@ -77,16 +94,22 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN /bin/echo -e "#!/bin/sh\n\
 export PYTHONUNBUFFERED=1\n\
 socket_folder=\${XPUM_SOCKET_FOLDER:-/tmp}\n\
+rest_disable=\${XPUM_REST_DISABLE:-0}\n\
 rest_host=\${XPUM_REST_HOST:-0.0.0.0}\n\
 rest_port=\${XPUM_REST_PORT:-29999}\n\
 rest_no_tls=\${XPUM_REST_NO_TLS:-0}\n\
-/usr/bin/xpumd -s \${socket_folder} &\n\
-until [ -e \${socket_folder}/xpum_p.sock ]; do sleep 0.1; done\n\
-if [ \"\${rest_no_tls}\" != \"1\" ]\n\
+if [ \"\${rest_disable}\" = \"1\" ]\n\
 then\n\
-  rest_tls_param=\"--certfile conf/cert.pem --keyfile conf/key.pem\"\n\
+  /usr/bin/xpumd -s \${socket_folder}\n\
+else\n\
+  /usr/bin/xpumd -s \${socket_folder} &\n\
+  until [ -e \${socket_folder}/xpum_p.sock ]; do sleep 0.1; done\n\
+  if [ \"\${rest_no_tls}\" != \"1\" ]\n\
+  then\n\
+    rest_tls_param=\"--certfile conf/cert.pem --keyfile conf/key.pem\"\n\
+  fi\n\
+  (cd /usr/lib/xpum/rest && exec gunicorn \${rest_tls_param} --bind \${rest_host}:\${rest_port} --worker-class gthread --threads 10 --worker-connections 1000 -w 1 'xpum_rest_main:main()')\n\
 fi\n\
-(cd /usr/lib/xpum/rest && exec gunicorn \${rest_tls_param} --bind \${rest_host}:\${rest_port} --worker-class gthread --threads 10 --worker-connections 1000 -w 1 'xpum_rest_main:main()')\n\
 " >> /entry_point.sh && chmod +x /entry_point.sh
 
 ENTRYPOINT ["/entry_point.sh"]
