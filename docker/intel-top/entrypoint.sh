@@ -30,6 +30,12 @@ do
     touch /tmp/results/igt$deviceNum-$deviceId.json
     chown 1000:1000 /tmp/results/igt$deviceNum-$deviceId.json
     # shellcheck disable=SC2086 # Intended work splitting
+    /usr/local/bin/intel_gpu_top -d pci:card=$deviceNum -J -s 1000 > /tmp/results/igt$deviceNum-$deviceId.json &
     echo "Starting igt capture for $device in igt$deviceNum-$deviceId.json"
-    /usr/local/bin/intel_gpu_top -d pci:card=$deviceNum -J -s 1000 > /tmp/results/igt$deviceNum-$deviceId.json
+done
+
+while true
+do
+	echo "Capturing igt metrics"
+	sleep 15
 done
