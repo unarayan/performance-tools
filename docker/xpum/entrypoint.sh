@@ -23,7 +23,26 @@ cd /usr/lib/xpum/rest && exec gunicorn ${rest_tls_param} --bind ${rest_host}:${r
 
 sleep 5
 echo "Start collecting XPU data"
-xpumcli dump --rawdata --start -d 0 -m 0,5,22,24,25 -j
+
+# shellcheck disable=SC2086 # Intended work splitting
+devices=$(xpumcli discovery -j  | grep '"device_id":' | sed ":a;N;s/\n/@/g")
+echo "devices found $devices"
+
+if [ -z "$devices" ]
+then
+    echo "No valid GPU devices found"
+	exit 1
+fi
+
+IFS='@'
+for device in $devices
+do
+    # shellcheck disable=SC2086 # Intended work splitting
+    deviceId=$(echo $device | awk '{print $2}' | cut -f1 -d",")
+    echo "$deviceId"
+    xpumcli dump --rawdata --start -d $deviceId -m 0,5,22,24,25 -j
+done
+
 
 while true
 do
