@@ -73,20 +73,6 @@ WORKDIR /
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-# set up entry point
-RUN /bin/echo -e "#!/bin/sh\n\
-export PYTHONUNBUFFERED=1\n\
-socket_folder=\${XPUM_SOCKET_FOLDER:-/tmp}\n\
-rest_host=\${XPUM_REST_HOST:-0.0.0.0}\n\
-rest_port=\${XPUM_REST_PORT:-29999}\n\
-rest_no_tls=\${XPUM_REST_NO_TLS:-0}\n\
-/usr/bin/xpumd -s \${socket_folder} &\n\
-until [ -e \${socket_folder}/xpum_p.sock ]; do sleep 0.1; done\n\
-if [ \"\${rest_no_tls}\" != \"1\" ]\n\
-then\n\
-  rest_tls_param=\"--certfile conf/cert.pem --keyfile conf/key.pem\"\n\
-fi\n\
-(cd /usr/lib/xpum/rest && exec gunicorn \${rest_tls_param} --bind \${rest_host}:\${rest_port} --worker-class gthread --threads 10 --worker-connections 1000 -w 1 'xpum_rest_main:main()')\n\
-" >> /entry_point.sh && chmod +x /entry_point.sh
+COPY entrypoint.sh entrypoint.sh
 
-ENTRYPOINT ["/entry_point.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
