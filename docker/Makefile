@@ -1,7 +1,7 @@
 # Copyright © 2024 Intel Corporation. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: build-all build-platform build-igt build-xpum run-platform run-igt run-xpum start-docker-compose stop-docker-compose
+.PHONY: build-all build-platform build-igt build-xpum run-platform run-igt run-xpum start-performance-tools stop-performance-tools
 
 build-all: build-platform build-igt build-xpum
 
@@ -26,8 +26,8 @@ run-igt:
 run-xpum:
 	docker run -d --rm -v /sys/firmware/acpi/tables/MCFG:/pcm/sys/firmware/acpi/tables/MCFG:ro -v /proc/bus/pci/:/pcm/proc/bus/pci/ -v /proc/sys/kernel/nmi_watchdog:/pcm/proc/sys/kernel/nmi_watchdog -v `pwd`/results:/tmp/xpumdump/ --privileged --user=root -e XPUM_REST_NO_TLS=1 --device /dev/dri:/dev/dri --device /dev/cpu:/dev/cpu --name=xpum benchmark:xpum
 
-start-docker-compose:
+start-performance-tools:
 	log_dir=./results docker compose up
 
-stop-docker-compose:
+stop-performance-tools:
 	log_dir=./results docker compose down

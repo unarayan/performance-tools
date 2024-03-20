@@ -1,4 +1,4 @@
-# Copyright © 2023 Intel Corporation. All rights reserved.
+# Copyright © 2024 Intel Corporation. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 .PHONY: build-benchmark-docker docs docs-builder-image build-docs serve-docs
