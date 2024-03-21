@@ -25,10 +25,4 @@ iotop -o -P -b >& /tmp/results/disk_bandwidth.log &
 echo "Starting xeon pcm-power collection"
 touch /tmp/results/pcm.csv
 chown 1000:1000 /tmp/results/pcm.csv
-/opt/intel/pcm-bin/bin/pcm 1 -silent -nc -nsys -csv=/tmp/results/pcm.csv &
-
-while true
-do
-	echo "Capturing system metrics"
-	sleep 15
-done
+/opt/intel/pcm-bin/bin/pcm 1 -silent -nc -nsys -csv=/tmp/results/pcm.csv
