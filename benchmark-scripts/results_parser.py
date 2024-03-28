@@ -1,10 +1,9 @@
 '''
-* Copyright (C) 2023 Intel Corporation.
+* Copyright (C) 2024 Intel Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
 '''
 
-import time
 import sys
 import argparse
 import os
@@ -20,6 +19,9 @@ class InferenceCounts:
     text_detection: int = 0
     text_recognition: int = 0
     barcode: int = 0
+
+    def __json__(self):
+        return self.__dict__
 
 
 tracked_objects = {}
@@ -62,13 +64,17 @@ def print_object(obj):
 
 
 def process(results, reclassify_interval):
-    product_key = "classification_layer_name:efficientnet-b0/model/head/dense/BiasAdd/Add"
-    text_keys = ["inference_layer_name:logits", "inference_layer_name:shadow/LSTMLayers/transpose_time_major",
+    product_key = ("classification_layer_name:efficientnet-b0/model/head/" +
+                   "dense/BiasAdd/Add")
+    text_keys = ["inference_layer_name:logits",
+                 "inference_layer_name:shadow/LSTMLayers/" +
+                 "transpose_time_major",
                  "inference_layer_name:shadow/LSTMLayers/Reshape_1"]
     detections = {}
     objects = {}
-    inferenceCounts.detection+=1
-    # Needed for additional entries like non-inference results like {"resolution":{"height":2160,"width":3840},"timestamp":201018476}
+    inferenceCounts.detection += 1
+    # Needed for additional entries like non-inference results like
+    # {"resolution":{"height":2160,"width":3840},"timestamp":201018476}
     if "objects" not in results:
         return
     for result in results["objects"]:
@@ -109,7 +115,8 @@ def process(results, reclassify_interval):
                     objects[parent_id]["text"].append(text)
 
     print("- Frame {}".format(frame_count))
-    for obj in sorted(objects.values(),key=lambda obj: obj["bounding_box"]["x_min"]):
+    for obj in sorted(objects.values(),
+                      key=lambda obj: obj["bounding_box"]["x_min"]):
         print_object(obj)
         update_tracked_object(obj,tracked_objects)
 
@@ -120,36 +127,35 @@ def update_tracked_object(obj, tracked_objects):
     tracked_object["id"] = obj["id"]
     for tracked_key in tracked_keys:
         updates = obj[tracked_key]
-        if not isinstance(updates,list):
+        if not isinstance(updates, list):
             updates= [updates]
         tracked_object.setdefault(tracked_key,Counter()).update(
             updates)
 
 
-def process_file(args):
-    if args.file:
-        filename=args.file
+def process_file(results_root, file, stream_index, reclassify_interval):
+    if file:
+        filename = file
     else:
-        filename = "results/r{}.jsonl".format(args.stream_index)
-    file = open(filename, "r")
-    line = file.readline()
-    global frame_count
-    while line:
-        try:
-            results = json.loads(line)
-            process(results, args.reclassify_interval)
-            frame_count += 1
-        except Exception as e:
-            print("Error: {}".format(e))
-            print(traceback.format_exc())
-        line = file.readline()
-    file.close()
+        filename = os.path.join(results_root, "/r{}.jsonl".
+                                format(stream_index))
+    with open(filename, "r") as file:
+        global frame_count
+        for line in file:
+            try:
+                results = json.loads(line)
+                process(results, reclassify_interval)
+                frame_count += 1
+            except Exception as e:
+                print("Error: {}".format(e))
+                print(traceback.format_exc())
 
 
 def on_connect(client, user_data, _unused_flags, return_code):
     if return_code == 0:
         args = user_data
-        print("Connected to broker at {}:{}".format(args.broker_address, args.broker_port))
+        print("Connected to broker at {}:{}".format(args.broker_address,
+                                                    args.broker_port))
         topic = "gulfstream/results_{}".format(args.stream_index)
         print("Subscribing to topic {}".format(topic))
         client.subscribe(topic)
@@ -157,65 +163,71 @@ def on_connect(client, user_data, _unused_flags, return_code):
         print("Error {} connecting to broker".format(return_code))
         sys.exit(1)
 
+
 def on_message(_unused_client, user_data, msg):
     results = json.loads(msg.payload)
     process(results)
 
-def process_mqtt(args):
-    client = mqtt.Client("Gulfstream", userdata=args)
+
+def process_mqtt(broker_address, broker_port):
+    client = mqtt.Client("Gulfstream")
     client.on_connect = on_connect
     client.on_message = on_message
-    client.connect(args.broker_address, args.broker_port)
+    client.connect(broker_address, broker_port)
     client.loop_forever()
 
 
-def main():
+def main(mode, stream_index=0, file="", min_detections=15,
+         reclassify_interval=1, broker_address="localhost", broker_port=1883,
+         results_root=os.path.join(os.path.curdir, 'results')):
     try:
-        args = parse_args()
-        if args.mode == "file":
-            process_file(args)
+        if mode == "file":
+            process_file(results_root, file, stream_index, reclassify_interval)
         else:
             import paho.mqtt.client as mqtt
-            process_mqtt(args)
+            process_mqtt(broker_address, broker_port)
         text_count = 0
         barcode_count = 0
-        print("-------")
-        print("Summary")
-        print("-------")
-        print("Frames {}".format(frame_count))
+        results = {"frame": frame_count}
         inferenceCounts.classification = inferenceCounts.detection
-        print(inferenceCounts)
+        results["inference_counts"] = inferenceCounts
         summary = []
         for obj in tracked_objects.values():
             summary_obj = {}
             id = obj["id"]
             for key in obj:
-                if isinstance(obj[key],Counter):
-                    print("key is : {}".format(key))
+                if isinstance(obj[key], Counter):
                     if key == "text":
-                        obj[key] = {k:v for k, v in obj[key].items() if v > args.min_detections}
+                        obj[key] = {k: v for k, v in obj[key].items()
+                                    if v > args.min_detections}
                     summary_obj[key] = list(obj[key].items())
                     obj[key] = list(obj[key].items())
                     if key == "barcode":
                         if None in obj[key][0]:
-                            print("barcode is None, skip")
+                            pass
                         else:
-                            print("barcode found: {}".format(obj[key][0]))
                             barcode_count += 1
                 else:
                     summary_obj[key] = obj[key]
-                    print("obj[key]: {}".format(obj[key]))
             detections = obj["label"][0][1]
             if detections >= args.min_detections:
                 print_object(obj)
                 text_count += len(obj["text"])
+                # should this be a deep copy here?
+                # or does the summary actually have all the right values?
                 summary.append(summary_obj)
-        print(json.dumps(summary))
-        print("Total Objects: {} ".format(len(obj)))
-        print("Total Text count: {}".format(text_count))
-        print("Total Barcode count: {}".format(barcode_count))
+        results["summary"] = summary
+        # what should total_objects be?
+        results["total_objects"] = len(obj)
+        results["total_text_count"] = text_count
+        results["total_barcode_count"] = barcode_count
+        with open(os.path.join(results_root, 'meta_summary.json'),
+                  'w', encoding='utf-8') as f:
+            json.dump(results, f, ensure_ascii=False, indent=4)
     except:
         print(traceback.format_exc())
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args.mode, args.file, args.min_detections, args.reclassify_interval,
+         args.broker_address, args.broker_port)

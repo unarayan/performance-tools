@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2023 Intel Corporation.
+# Copyright (C) 2024 Intel Corporation.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -21,8 +21,6 @@ if [ "${COMMAND,,}" = "start" ]; then
     if [ -z "$CAMERAS" ]; then
 	CAMERAS=${#FILES[@]}
     fi
-
-    cd $SOURCE_DIR/camera-simulator
     
     docker run --rm -t --network=host --name camera-simulator aler9/rtsp-simple-server >rtsp_simple_server.log.txt  2>&1 &
     index=0
