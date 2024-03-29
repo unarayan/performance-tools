@@ -73,30 +73,25 @@ def docker_compose_containers(command, compose_files=[], compose_pre_args="",
               (command, traceback.format_exc()))
 
 
-def format_xpumanager_results(results_dir):
+def convert_csv_results_to_json(results_dir, log_name):
+    '''
+    convert the csv output to json format for readability
+    Args:
+        results_dir: directory holding the benchmark results
+        log_name: first portion of the log you would like to search for
+    Returns:
+        None if print is True
+    '''
     with os.scandir(results_dir) as it:
         for entry in it:
-            if entry.name.startswith('device') and entry.is_file():
+            if entry.name.startswith(log_name) and entry.is_file():
                 print(entry.name)
-                xpum_csv = os.path.join(results_dir, entry.name)
-                xpum_json = json.dumps([dict(r) for r in csv.DictReader(open(xpum_csv))])
-                device_name = entry.name.split('-')
+                csv_file = os.path.join(results_dir, entry.name)
+                json_file = json.dumps([dict(r) for r in csv.DictReader(open(csv_file))])
+                device_name = entry.name.split('.')
                 json_result_path = os.path.join(results_dir, device_name[0]+".json")
                 with open(json_result_path, "w") as outfile:
-                    outfile.write(xpum_json)
-
-
-def format_igt_results(results_dir):
-    with os.scandir(results_dir) as it:
-        for entry in it:
-            if entry.name.startswith('igt') and entry.is_file():
-                print(entry.name)
-                igt_csv = os.path.join(results_dir, entry.name)
-                igt_json = json.dumps([dict(r) for r in csv.DictReader(open(igt_csv))])
-                device_name = entry.name.split('-')
-                json_result_path = os.path.join(results_dir, device_name[0]+".json")
-                with open(json_result_path, "w") as outfile:
-                    outfile.write(igt_json)
+                    outfile.write(json_file)
 
 
 def main():
@@ -141,8 +136,10 @@ def main():
     # collect metrics using copy-platform-metrics
     print("workloads finished...")
     # TODO: implement results handling based on what pipeline is run
-    format_xpumanager_results(results_dir)
-    format_igt_results(results_dir)
+    # convert xpum results to json
+    convert_csv_results_to_json(results_dir, 'device')
+    # convert igt results to json
+    convert_csv_results_to_json(results_dir, 'igt')
 
 if __name__ == '__main__':
     main()

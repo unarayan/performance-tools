@@ -18,6 +18,7 @@ from collections import defaultdict
 from natsort import natsorted
 from operator import add
 import json
+import csv
 
 # constants
 AVG_CPU_USAGE_CONSTANT = "CPU Utilization %"
@@ -85,7 +86,7 @@ class GPUUsageExtractor(KPIExtractor):
         device_usage_key = "GPU_{} {}".format(device[0], AVG_GPU_USAGE_CONSTANT)
         device_vdbox0_usage_key = "GPU_{} VDBOX0 {}".format(device[0], AVG_GPU_VDBOX_USAGE_CONSTANT)
         device_vdbox1_usage_key = "GPU_{} VDBOX1 {}".format(device[0], AVG_GPU_VDBOX_USAGE_CONSTANT)
-        with open(log_file_path) as f:
+        with open(log_file_path, 'r') as f:
             eu_samples = []
             vdbox0_samples = []
             vdbox1_samples = []
@@ -492,40 +493,22 @@ if __name__ == '__main__':
 
     n = 0
     df = pd.DataFrame()
-    for log_directory_path in [ f.path for f in os.scandir(root_directory) if f.is_dir() ]:
-        folderName = os.path.basename(log_directory_path)
-        full_kpi_dict = {}
-        for kpiExtractor in KPIExtractor_OPTION:
-            fileFound = False
-            for dirpath, dirname, filename in os.walk(log_directory_path):
-                for file in filename:
-                    if re.search(kpiExtractor, file):
-                        #print("matched file: {}".format(file))
-                        fileFound = True
-                        extractor = KPIExtractor_OPTION.get(kpiExtractor)()
-                        kpi_dict = extractor.extract_data(os.path.join(log_directory_path, file))
-                        if kpi_dict:
-                            full_kpi_dict.update(kpi_dict)
-            #if fileFound == False:
-            #    extractor = KPIExtractor_OPTION.get(kpiExtractor)()
-            #    kpi_dict = extractor.return_blank()
-            #    if kpi_dict:
-            #        full_kpi_dict.update(kpi_dict)
+    full_kpi_dict = {}
+    for kpiExtractor in KPIExtractor_OPTION:
+        fileFound = False
+        for dirpath, dirname, filename in os.walk(root_directory):
+            for file in filename:
+                if re.search(kpiExtractor, file):
+                    #print("matched file: {}".format(file))
+                    fileFound = True
+                    extractor = KPIExtractor_OPTION.get(kpiExtractor)()
+                    kpi_dict = extractor.extract_data(os.path.join(root_directory, file))
+                    if kpi_dict:
+                        full_kpi_dict.update(kpi_dict)
 
-        list_of_metric = []
-        list_of_value = []
-        for kpi, value in full_kpi_dict.items():
-            #print("kpi: {}, value: {}".format(kpi, value))
-            #print("value list size: {}".format(len(list_of_value)))
-            list_of_metric.append(kpi)
-            if isinstance(value, str):
-                list_of_value.append(value)
-            else:
-                list_of_value.append(round(value, 3))
+    # Write out summary csv file from dictionary
+    with open(output, 'w') as csv_file:  
+        writer = csv.writer(csv_file)
+        for key, value in full_kpi_dict.items():
+            writer.writerow([key, value])
 
-        if n == 0:
-            df['Metric'] = list_of_metric
-        df[folderName] = list_of_value
-        n = -1
-
-    df.to_csv(output, header=True)
