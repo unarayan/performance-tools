@@ -10,6 +10,8 @@ import shlex
 import subprocess  # nosec B404
 import time
 import traceback
+import csv
+import json
 
 
 def parse_args(print=False):
@@ -71,6 +73,32 @@ def docker_compose_containers(command, compose_files=[], compose_pre_args="",
               (command, traceback.format_exc()))
 
 
+def format_xpumanager_results(results_dir):
+    with os.scandir(results_dir) as it:
+        for entry in it:
+            if entry.name.startswith('device') and entry.is_file():
+                print(entry.name)
+                xpum_csv = os.path.join(results_dir, entry.name)
+                xpum_json = json.dumps([dict(r) for r in csv.DictReader(open(xpum_csv))])
+                device_name = entry.name.split('-')
+                json_result_path = os.path.join(results_dir, device_name[0]+".json")
+                with open(json_result_path, "w") as outfile:
+                    outfile.write(xpum_json)
+
+
+def format_igt_results(results_dir):
+    with os.scandir(results_dir) as it:
+        for entry in it:
+            if entry.name.startswith('igt') and entry.is_file():
+                print(entry.name)
+                # xpum_csv = os.path.join(results_dir, entry.name)
+                # xpum_json = json.dumps([dict(r) for r in csv.DictReader(open(xpum_csv))])
+                # device_name = entry.name.split('-')
+                # json_result_path = os.path.join(results_dir, device_name[0]+".json")
+                # with open(json_result_path, "w") as outfile:
+                #     outfile.write(xpum_json)
+
+
 def main():
     my_args = parse_args()
 
@@ -80,39 +108,40 @@ def main():
 
     print("Starting workload(s)")
 
-    # start the docker containers
-    # pass in necessary variables using env vars
-    compose_files = []
-    for file in my_args.compose_file:
-        compose_files.append(os.path.abspath(file))
+    format_xpumanager_results(results_dir)
+    # # start the docker containers
+    # # pass in necessary variables using env vars
+    # compose_files = []
+    # for file in my_args.compose_file:
+    #     compose_files.append(os.path.abspath(file))
 
-    # add the benchmark docker compose file
-    compose_files.append(os.path.abspath(os.path.join(
-        os.curdir, '..', 'docker', 'docker-compose.yaml')))
-    env_vars = os.environ.copy()
-    env_vars["log_dir"] = results_dir
-    env_vars["RESULTS_DIR"] = results_dir
-    env_vars["DEVICE"] = my_args.target_device
-    retail_use_case_root = os.path.abspath(my_args.retail_use_case_root)
-    env_vars["RETAIL_USE_CASE_ROOT"] = retail_use_case_root
-    if my_args.pipelines > 0:
-        env_vars["PIPELINE_COUNT"] = str(my_args.pipelines)
+    # # add the benchmark docker compose file
+    # compose_files.append(os.path.abspath(os.path.join(
+    #     os.curdir, '..', 'docker', 'docker-compose.yaml')))
+    # env_vars = os.environ.copy()
+    # env_vars["log_dir"] = results_dir
+    # env_vars["RESULTS_DIR"] = results_dir
+    # env_vars["DEVICE"] = my_args.target_device
+    # retail_use_case_root = os.path.abspath(my_args.retail_use_case_root)
+    # env_vars["RETAIL_USE_CASE_ROOT"] = retail_use_case_root
+    # if my_args.pipelines > 0:
+    #     env_vars["PIPELINE_COUNT"] = str(my_args.pipelines)
 
-    docker_compose_containers("up", compose_files=compose_files,
-                              compose_post_args="-d", env_vars=env_vars)
-    print("Waiting for init duration to complete...")
-    time.sleep(my_args.init_duration)
+    # docker_compose_containers("up", compose_files=compose_files,
+    #                           compose_post_args="-d", env_vars=env_vars)
+    # print("Waiting for init duration to complete...")
+    # time.sleep(my_args.init_duration)
 
-    # use duration to sleep
-    print("Waiting for %d seconds for workload to finish" % my_args.duration)
-    time.sleep(my_args.duration)
-    # stop all containers and camera-simulator
-    docker_compose_containers("down", compose_files=compose_files,
-                              env_vars=env_vars)
+    # # use duration to sleep
+    # print("Waiting for %d seconds for workload to finish" % my_args.duration)
+    # time.sleep(my_args.duration)
+    # # stop all containers and camera-simulator
+    # docker_compose_containers("down", compose_files=compose_files,
+    #                           env_vars=env_vars)
 
-    # collect metrics using copy-platform-metrics
-    print("workloads finished...")
-    # TODO: implement results handling based on what pipeline is run
+    # # collect metrics using copy-platform-metrics
+    # print("workloads finished...")
+    # # TODO: implement results handling based on what pipeline is run
 
 
 if __name__ == '__main__':

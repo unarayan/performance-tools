@@ -6,7 +6,7 @@
 #
 
 # shellcheck disable=SC2086 # Intended work splitting
-devices=$(/usr/local/bin/intel_gpu_top -L  | grep card | awk '{print $1,$5;}' | sed ":a;N;s/\n/@/g")
+devices=$(intel_gpu_top -L  | grep card | awk '{print $1,$5;}' | sed ":a;N;s/\n/@/g")
 echo "devices found $devices"
 
 if [ -z "$devices" ]
@@ -27,11 +27,11 @@ do
     # shellcheck disable=SC2086 # Intended work splitting
     deviceNum=$(echo $dev | sed -E 's/.*?card//')
     echo "device number: $deviceNum"
-    touch /tmp/results/igt$deviceNum-$deviceId.json
-    chown 1000:1000 /tmp/results/igt$deviceNum-$deviceId.json
+    touch /tmp/results/igt$deviceNum-$deviceId.csv
+    chown 1000:1000 /tmp/results/igt$deviceNum-$deviceId.csv
     # shellcheck disable=SC2086 # Intended work splitting
-    /usr/local/bin/intel_gpu_top -d pci:card=$deviceNum -J -s 1000 > /tmp/results/igt$deviceNum-$deviceId.json &
-    echo "Starting igt capture for $device in igt$deviceNum-$deviceId.json"
+    intel_gpu_top -d pci:card=$deviceNum -c -o /tmp/results/igt$deviceNum-$deviceId.csv &
+    echo "Starting igt capture for $device in igt$deviceNum-$deviceId.csv"
 done
 
 while true
