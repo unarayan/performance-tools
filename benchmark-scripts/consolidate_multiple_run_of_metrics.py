@@ -94,18 +94,10 @@ class GPUUsageExtractor(KPIExtractor):
             #json data works for vdbox, but not for overall usage due to duplicate Render/3D/0 entries in the log file
             #eu_samples.append(entry["engines"]["Render/3D/0"]["busy"])
             #print("usage: {}".format(entry["engines"]["Render/3D/0"]["busy"]))
-            vdbox0_samples.append(entry["engines"]["Video/0"]["busy"])
-            try:
-                vdbox1_samples.append(entry["engines"]["Video/1"]["busy"])
-            except KeyError:
-                pass
+            vdbox0_samples.append(float(entry["RCS %"]))
         
         if len(vdbox0_samples) > 0:
             gpu_device_usage[device_vdbox0_usage_key] = mean(vdbox0_samples)
-            try:
-                gpu_device_usage[device_vdbox1_usage_key] = mean(vdbox1_samples)
-            except:
-                pass # nosec
         
         usage_samples = []
         with open(log_file_path) as f:
@@ -483,7 +475,7 @@ KPIExtractor_OPTION = {"meta_summary.txt":MetaExtractor,
                        "power_usage.log":PowerUsageExtractor,
                        "pcm.csv":PCMExtractor,
                        "(?:^xpum).*\.json$":XPUMUsageExtractor,
-                       "igt":GPUUsageExtractor,}
+                       "(?:^igt).*\.json$":GPUUsageExtractor,}
 
 def add_parser():
     parser = argparse.ArgumentParser(description='Consolidate data')

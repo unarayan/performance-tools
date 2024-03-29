@@ -19,7 +19,7 @@ run:
 	docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`/results:/tmp/results --net=host --privileged benchmark:dev /bin/bash
 
 consolidate:
-	docker run -itd --rm --name=consolidate -v `pwd`/$(ROOT_DIRECTORY):/$(ROOT_DIRECTORY) -e ROOT_DIRECTORY=$(ROOT_DIRECTORY)--net=host --privileged benchmark:dev /bin/bash -c "python3 consolidate_multiple_run_of_metrics.py --root_directory $(ROOT_DIRECTORY)/ --output $(ROOT_DIRECTORY)/summary.csv"
+	python3 consolidate_multiple_run_of_metrics.py --root_directory $(ROOT_DIRECTORY)/ --output $(ROOT_DIRECTORY)/summary.csv
 
 python-test:
 	python -m coverage run -m unittest benchmark_test.py
