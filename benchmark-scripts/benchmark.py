@@ -82,16 +82,17 @@ def convert_csv_results_to_json(results_dir, log_name):
     Returns:
         None if print is True
     '''
-    with os.scandir(results_dir) as it:
-        for entry in it:
-            if entry.name.startswith(log_name) and entry.is_file():
-                print(entry.name)
-                csv_file = os.path.join(results_dir, entry.name)
-                json_file = json.dumps([dict(r) for r in csv.DictReader(open(csv_file))])
-                device_name = entry.name.split('.')
-                json_result_path = os.path.join(results_dir, device_name[0]+".json")
-                with open(json_result_path, "w") as outfile:
-                    outfile.write(json_file)
+    for entry in os.scandir(results_dir):
+        if entry.name.startswith(log_name) and entry.is_file():
+            print(entry.path)
+            csv_file = open(entry.path)
+            json_file = json.dumps([dict(r) for r in csv.DictReader(csv_file)])
+            device_name = entry.name.split('.')
+            json_result_path = os.path.join(results_dir, device_name[0]+".json")
+            with open(json_result_path, "w") as outfile:
+                outfile.write(json_file)
+            outfile.close()
+            csv_file.close()
 
 
 def main():
