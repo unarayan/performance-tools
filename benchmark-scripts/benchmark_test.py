@@ -8,6 +8,7 @@ import mock
 import subprocess  # nosec B404
 import unittest
 import benchmark
+import os
 
 
 class Testing(unittest.TestCase):
@@ -43,14 +44,14 @@ class Testing(unittest.TestCase):
     def test_docker_compose_containers_fail(self):
         mock_popen = Testing.MockPopen()
         mock_popen.communicate = mock.Mock(return_value=('',
-                                                         b'an error occurred'))
+                                                         'an error occurred'))
         mock_returncode = mock.PropertyMock(return_value=1)
         type(mock_popen).returncode = mock_returncode
 
         setattr(subprocess, 'Popen', lambda *args, **kargs: mock_popen)
         res = benchmark.docker_compose_containers('up')
 
-        self.assertEqual(res, ('', b'an error occurred', 1))
+        self.assertEqual(res, ('', 'an error occurred', 1))
         mock_popen.communicate.assert_called_once_with()
         mock_returncode.assert_called()
 

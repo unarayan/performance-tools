@@ -10,6 +10,8 @@ import shlex
 import subprocess  # nosec B404
 import time
 import traceback
+import csv
+import json
 
 
 def parse_args(print=False):
@@ -94,6 +96,29 @@ def docker_compose_containers(command, compose_files=[], compose_pre_args="",
               (command, traceback.format_exc()))
 
 
+def convert_csv_results_to_json(results_dir, log_name):
+    '''
+    convert the csv output to json format for readability
+    Args:
+        results_dir: directory holding the benchmark results
+        log_name: first portion of the log you would like to search for
+    Returns:
+        None if print is True
+    '''
+    for entry in os.scandir(results_dir):
+        if entry.name.startswith(log_name) and entry.is_file():
+            print(entry.path)
+            csv_file = open(entry.path)
+            json_file = json.dumps([dict(r) for r in csv.DictReader(csv_file)])
+            device_name = entry.name.split('.')
+            json_result_path = os.path.join(
+                results_dir, device_name[0]+".json")
+            with open(json_result_path, "w") as outfile:
+                outfile.write(json_file)
+            outfile.close()
+            csv_file.close()
+
+
 def main():
     '''
     runs benchmarking using docker compose for the specified pipeline
@@ -139,7 +164,10 @@ def main():
     # collect metrics using copy-platform-metrics
     print("workloads finished...")
     # TODO: implement results handling based on what pipeline is run
-
+    # convert xpum results to json
+    convert_csv_results_to_json(results_dir, 'device')
+    # convert igt results to json
+    convert_csv_results_to_json(results_dir, 'igt')
 
 if __name__ == '__main__':
     main()
