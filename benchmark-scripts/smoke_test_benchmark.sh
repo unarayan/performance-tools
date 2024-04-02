@@ -10,7 +10,7 @@
     cd ..
     make clean-all
     sleep 3
-    make build-dlstreamer
+    make build-benchmark-docker
 )
 
 # build benchmark Docker images:
