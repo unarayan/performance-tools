@@ -12,7 +12,7 @@ import os
 class Integration(unittest.TestCase):
 
     def test_convert_csv_results_to_json(self):
-        csv_dir = './test_csv'
+        csv_dir = './test_src'
         found_json = False
         benchmark.convert_csv_results_to_json(csv_dir, 'test')
         for entry in os.scandir(csv_dir):

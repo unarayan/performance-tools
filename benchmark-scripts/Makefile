@@ -1,5 +1,6 @@
 # Copyright © 2024 Intel Corporation. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+.PHONY: consolidate python-test python-integration python-coverage
 
 ROOT_DIRECTORY ?= results
 
