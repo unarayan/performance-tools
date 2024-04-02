@@ -78,52 +78,18 @@ class GPUUsageExtractor(KPIExtractor):
     #overriding abstract method
     def extract_data(self, log_file_path):
         print("parsing GPU usages")
-        #print("log file path: {}".format(log_file_path))
         device = re.findall(r'\d+', os.path.basename(log_file_path))
-        #print("device number: {}".format(device))
         gpu_device_usage = {}
-        eu_total = 0
-        device_usage_key = "GPU_{} {}".format(device[0], AVG_GPU_USAGE_CONSTANT)
         device_vdbox0_usage_key = "GPU_{} VDBOX0 {}".format(device[0], AVG_GPU_VDBOX_USAGE_CONSTANT)
-        device_vdbox1_usage_key = "GPU_{} VDBOX1 {}".format(device[0], AVG_GPU_VDBOX_USAGE_CONSTANT)
         with open(log_file_path, 'r') as f:
-            eu_samples = []
             vdbox0_samples = []
-            vdbox1_samples = []
             data = json.load(f)
         for entry in data:
-            #json data works for vdbox, but not for overall usage due to duplicate Render/3D/0 entries in the log file
-            #eu_samples.append(entry["engines"]["Render/3D/0"]["busy"])
-            #print("usage: {}".format(entry["engines"]["Render/3D/0"]["busy"]))
+            # extract gpu render device usage from RCS field
             vdbox0_samples.append(float(entry["RCS %"]))
-        
+
         if len(vdbox0_samples) > 0:
             gpu_device_usage[device_vdbox0_usage_key] = mean(vdbox0_samples)
-        
-        usage_samples = []
-        with open(log_file_path) as f:
-            lines = f.readlines()
-
-            for i, line in enumerate(lines):
-                if self._USAGE_PATTERN in line:
-                   #print("found pattern {}".format(line))
-                   usage_line = lines[i+1]
-                   #print("usage line  {}".format(usage_line))
-                   #usage_line.strip()
-                   #print("usage line  {}".format(usage_line))
-                   junk, usage_percent = usage_line.split(":", 1)
-                   usage_percent, junk = usage_percent.split(",", 1)
-                   #print("usage percent  after split {}".format(float(usage_percent)))
-                   if float(usage_percent) > 0:
-                       #print("usage percent {}".format(float(usage_percent)))
-
-                       usage_samples.append(float(usage_percent))
-        if usage_samples: 
-          #print("avg gpu usage: {}".format(mean(usage_samples)))
-          gpu_device_usage[device_usage_key] = mean(usage_samples)
-        else:
-            gpu_device_usage[device_usage_key] = 0.0
-
 
         if gpu_device_usage:
             return gpu_device_usage
@@ -476,7 +442,7 @@ KPIExtractor_OPTION = {"meta_summary.txt":MetaExtractor,
                        "power_usage.log":PowerUsageExtractor,
                        "pcm.csv":PCMExtractor,
                        "(?:^xpum).*\.json$":XPUMUsageExtractor,
-                       "(?:^igt).*\.json$":GPUUsageExtractor,}
+                       '(?:^igt).*\\.json': GPUUsageExtractor, }
 
 def add_parser():
     parser = argparse.ArgumentParser(description='Consolidate data')
@@ -499,16 +465,15 @@ if __name__ == '__main__':
         for dirpath, dirname, filename in os.walk(root_directory):
             for file in filename:
                 if re.search(kpiExtractor, file):
-                    #print("matched file: {}".format(file))
                     fileFound = True
                     extractor = KPIExtractor_OPTION.get(kpiExtractor)()
-                    kpi_dict = extractor.extract_data(os.path.join(root_directory, file))
+                    kpi_dict = extractor.extract_data(
+                        os.path.join(root_directory, file))
                     if kpi_dict:
                         full_kpi_dict.update(kpi_dict)
 
     # Write out summary csv file from dictionary
-    with open(output, 'w') as csv_file:  
+    with open(output, 'w') as csv_file:
         writer = csv.writer(csv_file)
         for key, value in full_kpi_dict.items():
             writer.writerow([key, value])
-

@@ -88,7 +88,8 @@ def convert_csv_results_to_json(results_dir, log_name):
             csv_file = open(entry.path)
             json_file = json.dumps([dict(r) for r in csv.DictReader(csv_file)])
             device_name = entry.name.split('.')
-            json_result_path = os.path.join(results_dir, device_name[0]+".json")
+            json_result_path = os.path.join(
+                results_dir, device_name[0]+".json")
             with open(json_result_path, "w") as outfile:
                 outfile.write(json_file)
             outfile.close()
