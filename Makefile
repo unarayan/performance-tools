@@ -1,7 +1,7 @@
 # Copyright © 2024 Intel Corporation. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: build-benchmark-docker docs docs-builder-image build-docs serve-docs
+.PHONY: build-benchmark-docker docs docs-builder-image build-docs serve-docs clean
 
 MKDOCS_IMAGE ?= asc-mkdocs
 
@@ -32,3 +32,6 @@ serve-docs: docs-builder-image
 		-v $(PWD):/docs \
 		-w /docs \
 		$(MKDOCS_IMAGE)
+
+clean:
+	docker rm -f $(docker ps -aq)
