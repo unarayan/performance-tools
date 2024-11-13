@@ -16,5 +16,6 @@ python-test:
 python-integration:
 	python -m coverage run -m unittest benchmark_integration.py
 
-python-coverage:
+# for more up-to-date coverage, run python unit test first
+python-coverage: python-test
 	coverage report -m
