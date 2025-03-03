@@ -407,8 +407,17 @@ class PCMExtractor(KPIExtractor):
             elif 'WRITE' in column:
                 mem_write = df[column].tolist()
                 mem_bandwidth = list(map(add, mem_read, mem_write))
-                socket_key = "S{} {}".format(socket_count, AVG_MEM_BANDWIDTH_CONSTANT)
-                socket_memory_and_power[socket_key] = 1000 * mean([ x for x in mem_bandwidth if pd.isna(x) == False ])
+                numeric_values = []
+                for x in mem_bandwidth:
+                    if pd.isna(x) == False:
+                        try:
+                            numeric_values.append(float(x))
+                        except (ValueError, TypeError):
+                            # Skip values that can't be converted to float
+                            pass
+                if numeric_values:  # Make sure we have values to calculate mean
+                    socket_key = "S{} {}".format(socket_count, AVG_MEM_BANDWIDTH_CONSTANT)
+                    socket_memory_and_power[socket_key] = 1000 * mean(numeric_values)
                 socket_count = socket_count + 1
 
         print("parsing power usage")
@@ -419,8 +428,17 @@ class PCMExtractor(KPIExtractor):
             if 'Proc Energy (Joules)' in column:
                 power_usage = df[column].tolist()
                 del power_usage[0]
-                socket_key = "S{} {}".format(socket_count, AVG_POWER_USAGE_CONSTANT)
-                socket_memory_and_power[socket_key] = mean([ float(x) for x in power_usage if pd.isna(x) == False ])
+                numeric_values = []
+                for x in power_usage:
+                    if pd.isna(x) == False:
+                        try:
+                            numeric_values.append(float(x))
+                        except (ValueError, TypeError):
+                            # Skip values that can't be converted to float
+                            pass
+                if numeric_values:  # Make sure we have values to calculate mean
+                    socket_key = "S{} {}".format(socket_count, AVG_POWER_USAGE_CONSTANT)
+                    socket_memory_and_power[socket_key] = mean(numeric_values)
                 socket_count = socket_count + 1
 
         if socket_memory_and_power:
