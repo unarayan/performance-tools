@@ -4,7 +4,7 @@
 * SPDX-License-Identifier: Apache-2.0
 '''
 
-import mock
+import unittest.mock as mock
 import subprocess  # nosec B404
 import unittest
 import benchmark
