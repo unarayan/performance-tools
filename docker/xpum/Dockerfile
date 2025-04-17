@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-FROM ubuntu:22.04 as builder
+FROM ubuntu:22.04@sha256:ed1544e454989078f5dec1bfdabd8c5cc9c48e0705d07b678ab6ae3fb61952d2 as builder
 ENV HOME=/home/nobody
 ENV no_proxy=localhost,127.0.0.1
 ENV NO_PROXY=localhost,127.0.0.1
@@ -22,8 +22,7 @@ rm -rf /var/lib/apt/lists/*
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt /requirements.txt
-RUN pip install -r /requirements.txt
-RUN pip install gunicorn[gthread]
+RUN pip install --require-hashes --no-deps --no-cache-dir -r requirements.txt
 WORKDIR /opt/venv
 RUN find . -name "pip*" -exec rm -rf {} \; ;exit 0
 RUN find . -name "*normalizer*" -exec rm -rf {} \; ;exit 0
@@ -34,7 +33,7 @@ RUN find . -name "easy_install*" -exec rm -rf {} \; ;exit 0
 RUN find . -name "setuptools*" -exec rm -rf {} \; ;exit 0
 RUN find . -name "__pycache__" -exec rm -rf {} \; ;exit 0
 
-FROM ubuntu:22.04
+FROM ubuntu:22.04@sha256:ed1544e454989078f5dec1bfdabd8c5cc9c48e0705d07b678ab6ae3fb61952d2
 
 ENV HOME=/home/nobody
 ENV no_proxy=localhost,127.0.0.1

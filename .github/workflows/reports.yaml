@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Generate Security Report
-        uses: rsdmike/github-security-report-action@v3.0.4
+        uses: rsdmike/github-security-report-action@95aa22c731924a4e7e4680a8c9bc719da99ca617
         with:
           template: report
           token: ${{ secrets.SECURITY_TOKEN }}
