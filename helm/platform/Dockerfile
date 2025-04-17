@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-FROM ubuntu:22.04
+FROM ubuntu:22.04@sha256:ed1544e454989078f5dec1bfdabd8c5cc9c48e0705d07b678ab6ae3fb61952d2
 ARG SERVER_GPU
 
 RUN echo $HTTP_PROXY
@@ -24,7 +24,7 @@ RUN apt-get update -y || true; DEBIAN_FRONTEND=noninteractive apt-get install -y
 
 COPY requirements.txt .
 
-RUN pip3 install -r requirements.txt
+RUN pip install --require-hashes --no-deps --no-cache-dir -r requirements.txt
 
 RUN if [ -d "/opt/intel/pcm" ] ; then rm -R /opt/intel/pcm; fi
 
