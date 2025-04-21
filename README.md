@@ -1,6 +1,6 @@
 # Performance Evaluation Service
 
-![CodeQL](https://github.com/intel-retail/performance-tools/actions/workflows/codeql.yaml/badge.svg?branch=main) ![DockerImageBuild](https://github.com/intel-retail/performance-tools/actions/workflows/build.yaml/badge.svg?branch=main)  [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/intel-retail/performance-tools/badge)](https://api.securityscorecards.dev/projects/github.com/intel-retail/performance-tools)
+![CodeQL](https://github.com/intel-retail/performance-tools/actions/workflows/codeql.yaml/badge.svg?branch=main) ![DockerImageBuild](https://github.com/intel-retail/performance-tools/actions/workflows/build.yaml/badge.svg?branch=main)  [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/intel-retail/performance-tools/badge)](https://api.securityscorecards.dev/projects/github.com/intel-retail/performance-tools) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10448/badge)](https://www.bestpractices.dev/projects/10448)
 
 ## Documentation
 
