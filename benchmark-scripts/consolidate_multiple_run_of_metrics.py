@@ -460,7 +460,7 @@ KPIExtractor_OPTION = {"meta_summary.txt":MetaExtractor,
                        "power_usage.log":PowerUsageExtractor,
                        "pcm.csv":PCMExtractor,
                        r"(?:^xpum).*\.json$": XPUMUsageExtractor,
-                       r"(?:^igt).*\\.json": GPUUsageExtractor, }
+                       r"(?:^igt).*\.json$": GPUUsageExtractor, }
 
 def add_parser():
     parser = argparse.ArgumentParser(description='Consolidate data')
