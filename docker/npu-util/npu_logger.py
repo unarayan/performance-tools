@@ -9,7 +9,7 @@ import os
 import time
 
 # use lspci | grep -i npu to get the right npu path for the system
-NPU_PATH = os.getenv("NPU_PATH", "/sys/devices/pci0000:00/0000:00:0b.0/power/runtime_active_time")
+NPU_PATH = os.getenv("NPU_PATH", "/sys/devices/pci0000:00/0000:00:0b.0/npu_busy_time_us")
 NPU_LOG = os.getenv("NPU_LOG", "npu_usage.csv")
 
 def read_npu_runtime(path):
@@ -44,7 +44,7 @@ def main():
 
                 delta_runtime = current_runtime - prev_runtime
                 # grab the change in time in milliseconds
-                delta_time = (current_time - prev_time).total_seconds() * 1000 
+                delta_time = (current_time - prev_time).total_seconds() * 1000000  
 
                 percent_usage = 0.0
                 if delta_time > 0:
