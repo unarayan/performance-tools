@@ -43,7 +43,7 @@ def main():
                     continue
 
                 delta_runtime = current_runtime - prev_runtime
-                # grab the change in time in milliseconds
+                # grab the change in time in microseconds
                 delta_time = (current_time - prev_time).total_seconds() * 1000000  
 
                 percent_usage = 0.0
