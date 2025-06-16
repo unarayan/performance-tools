@@ -87,30 +87,51 @@ class NPUUsageExtractor(KPIExtractor):
         return {AVG_NPU_USAGE_CONSTANT: "NA"}
 
 class GPUUsageExtractor(KPIExtractor):
-    _USAGE_PATTERN = "Render/3D/0"
     #overriding abstract method
     def extract_data(self, log_file_path):
         print("parsing GPU usages")
         device = re.findall(r'\d+', os.path.basename(log_file_path))
-        gpu_device_usage = {}
-        device_vdbox0_usage_key = "GPU_{} VDBOX0 {}".format(device[0], AVG_GPU_VDBOX_USAGE_CONSTANT)
-        with open(log_file_path, 'r') as f:
-            vdbox0_samples = []
-            data = json.load(f)
-        for entry in data:
-            # extract gpu render device usage from RCS field
-            vdbox0_samples.append(float(entry["RCS %"]))
+        desc_map = {
+            'CCS %': 'Compute[CCS] Utilization %',
+            'RCS %': 'Render/3D[RCS] Utilization %',
+            'VCS %': 'Video[VCS] Utilization %',
+            'VECS %': 'VideoEnhance[VECS] Utilization %',
+            'Power W pkg': 'GPU Power (W)',
+            'RC6 %': 'GPU Idle Time (RC6 %)'
+        }
 
-        if len(vdbox0_samples) > 0:
-            gpu_device_usage[device_vdbox0_usage_key] = mean(vdbox0_samples)
+        device_prefix = f"GPU_{device[0]}"
+        gpu_device_usage = {
+            f"{device_prefix} {desc}": 'NA' for desc in desc_map.values()
+        }
 
-        if gpu_device_usage:
-            return gpu_device_usage
-        else:
-            return {AVG_GPU_USAGE_CONSTANT: "NA"}
+        if os.path.isfile(log_file_path) and os.path.getsize(log_file_path) > 0:
+            try:
+                with open(log_file_path, 'r') as f:
+                    data = json.load(f)
+
+                if isinstance(data, list) and data:
+                    sample_count = len(data)
+                    sums = {metric: 0.0 for metric in desc_map.keys()}
+
+                    for entry in data:
+                        for metric in desc_map.keys():
+                            try:
+                                value = float(str(entry.get(metric, '0')).replace('%', '').strip())
+                                sums[metric] += value
+                            except ValueError:
+                                continue
+
+                    for metric, total in sums.items():
+                        desc = f"{device_prefix} {desc_map[metric]}"
+                        gpu_device_usage[desc] = round(total / sample_count, 2)
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+        return gpu_device_usage
 
     def return_blank(self):
-        return {AVG_GPU_USAGE_CONSTANT: "NA"}
+        return gpu_device_usage
 
 class XPUMUsageExtractor(KPIExtractor):
     #overriding abstract method
