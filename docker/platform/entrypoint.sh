@@ -40,7 +40,7 @@ if [ "$is_xeon"  == "1"  ]
 echo "Starting general pcm collection"
 touch /tmp/results/pcm.csv
 chown 1000:1000 /tmp/results/pcm.csv
-/opt/intel/pcm-bin/bin/pcm 1 -silent -nc -nsys -csv=/tmp/results/pcm.csv &
+/opt/intel/pcm-bin/bin/pcm 1 -silent -r -nc -nsys -csv=/tmp/results/pcm.csv &
 
 while true
 do
