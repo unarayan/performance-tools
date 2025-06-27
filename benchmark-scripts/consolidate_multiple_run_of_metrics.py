@@ -425,7 +425,7 @@ class PIPELINLastModifiedExtractor(KPIExtractor):
     def return_blank(self):
         return {LAST_MODIFIED_LOG: "NA"}
 
-class PIPELINELATENCYExtractor(KPIExtractor):
+class PipelineLatencyExtractor(KPIExtractor):
     #overriding abstract method
     def extract_data(self, log_file_path):
         
@@ -512,7 +512,7 @@ KPIExtractor_OPTION = {"meta_summary.txt":MetaExtractor,
                        "camera":FPSExtractor,
                        "pipeline":PIPELINEFPSExtractor,
                        r"(?:^r).*\.jsonl$": PIPELINLastModifiedExtractor,
-                       "gst-launch":PIPELINELATENCYExtractor,
+                       "gst-launch":PipelineLatencyExtractor,
                        "cpu_usage.log":CPUUsageExtractor,
                        "npu_usage.csv":NPUUsageExtractor,
                        "memory_usage.log":MemUsageExtractor, 
