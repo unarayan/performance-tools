@@ -430,18 +430,19 @@ class PipelineLatencyExtractor(KPIExtractor):
     def extract_data(self, log_file_path):
         
         print("parsing latency")
-        average_latency_list = []
+        average_latency_value = ""
         latency = {}
         lat = re.findall(r'\d+', os.path.basename(log_file_path))
-        latency_key = "Pipeline_{} {}".format(lat[0], PIPELINE_LATENCY_CONSTANT)
+        lat_filename = lat[0] if len(lat) > 0 else "UNKNOWN"
+        latency_key = "Pipeline_{} {}".format(lat_filename, PIPELINE_LATENCY_CONSTANT)
         with open(log_file_path) as f:
             for line in f:
               if "latency_tracer_pipeline" in line:
                 match = re.search(r'avg=\(double\)([0-9]*\.?[0-9]+)', line)
                 if match:
-                    average_latency_list.append((match.group(1)))
-        if len(average_latency_list) > 0:
-            latency[latency_key] = average_latency_list[-1]
+                    average_latency_value=match.group(1)
+        if len(average_latency_value) > 0:
+            latency[latency_key] = average_latency_value
         else:
             latency[latency_key] = "NA"
 
