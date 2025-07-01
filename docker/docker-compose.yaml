@@ -19,6 +19,5 @@ services:
       - NPU_LOG=/tmp/results/npu_usage.csv
     volumes:
       - ${log_dir}:/tmp/results
-      - ${log_dir}/logs:/tmp/logs
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /sys/devices:/sys/devices
