@@ -4,58 +4,43 @@
 * SPDX-License-Identifier: Apache-2.0
 '''
 
-import datetime
 import os
 import time
+from datetime import datetime
 
-# use lspci | grep -i npu to get the right npu path for the system
 NPU_PATH = os.getenv("NPU_PATH", "/sys/devices/pci0000:00/0000:00:0b.0/npu_busy_time_us")
 NPU_LOG = os.getenv("NPU_LOG", "npu_usage.csv")
 
 def read_npu_runtime(path):
     try:
-        with open(path, "r") as f:
+        with open(path) as f:
             return int(f.read().strip())
-    except Exception as e:
-        print(f"Error reading NPU runtime: {e}")
+    except:
         return None
-    
+
 def main():
-    print(f"Logging NPU usage to {NPU_LOG} (Ctrl+C to stop)...")
-    with open(NPU_LOG, "w", buffering=1) as f:
-        f.write("timestamp,percent_usage\n")
+    print(f"Logging NPU usage to '{NPU_LOG}' (Ctrl+C to stop)...")
 
-        prev_runtime = read_npu_runtime(NPU_PATH)
-        prev_time = datetime.datetime.now()
+    prev_runtime = read_npu_runtime(NPU_PATH)
+    prev_time = time.monotonic()
+    if prev_runtime is None:
+        print("Initial NPU read failed. Exiting.")
+        return
 
-        if prev_runtime is None:
-            print("Failed to read initial NPU Runtime. Exiting...")
-            return
-        
-        while True:
-            try: 
+    with open(NPU_LOG, "w", buffering=1) as log:
+        log.write("timestamp,percent_usage\n")
+        try:
+            while True:
                 time.sleep(1)
-
-                current_runtime = read_npu_runtime(NPU_PATH)
-                current_time = datetime.datetime.now()
-
-                if current_runtime is None:
+                curr_runtime = read_npu_runtime(NPU_PATH)
+                curr_time = time.monotonic()
+                if curr_runtime is None:
                     continue
-
-                delta_runtime = current_runtime - prev_runtime
-                # grab the change in time in microseconds
-                delta_time = (current_time - prev_time).total_seconds() * 1000000  
-
-                percent_usage = 0.0
-                if delta_time > 0:
-                    percent_usage = delta_runtime/delta_time * 100
-                
-                f.write("%s,%.2f\n" % (current_time.isoformat(), percent_usage))
-
-                prev_runtime = current_runtime
-                prev_time = current_time
-            except KeyboardInterrupt:
-                print("\nStopped logging.")
+                usage = (curr_runtime - prev_runtime) / ((curr_time - prev_time) * 1e6) * 100
+                log.write(f"{datetime.now().isoformat()},{usage:.2f}\n")
+                prev_runtime, prev_time = curr_runtime, curr_time
+        except KeyboardInterrupt:
+            print("\nStopped logging.")
 
 if __name__ == "__main__":
     main()
