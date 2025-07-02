@@ -207,38 +207,40 @@ def main():
             f"Met target FPS? {met_fps}")
     else:
         # regular --pipelines mode:
-        # Set pipeline count if specified
         if my_args.pipelines > 0:
             env_vars["PIPELINE_COUNT"] = str(my_args.pipelines)
-
-        # Start containers
-        docker_compose_containers("up", compose_files=compose_files, compose_post_args="-d", env_vars=env_vars)
-
-        # Wait for initialization
-        print(f"Waiting for {my_args.init_duration}s init duration to complete")
+        docker_compose_containers("up", compose_files=compose_files,
+                                  compose_post_args="-d",
+                                  env_vars=env_vars)
+        print("Waiting for %ds init duration to complete" % my_args.init_duration)
         time.sleep(my_args.init_duration)
 
-        # Wait for workload to finish
-        print(f"Waiting for {my_args.duration}s for workload to finish")
+        # use duration to sleep
+        print(
+            "Waiting for %ds for workload to finish"
+            % my_args.duration)
         time.sleep(my_args.duration)
-
-        # Capture docker logs if requested
+        
+        # grab the container logs if necessary
         if my_args.docker_log:
-            log_file = os.path.join(my_args.results_dir, f"{my_args.docker_log}.log")
-            print(f"Writing docker log to {log_file}")
             try:
-                subprocess.run(
-                    ["docker", "logs", my_args.docker_log],
-                    stdout=open(log_file, 'wb'),
-                    stderr=subprocess.STDOUT,
-                    check=True,
-                    env=env_vars  # nosec B404, B603
-                )
+                docker_log = ("docker logs %s" % my_args.docker_log)
+                docker_log_args = shlex.split(docker_log)
+                log_file = os.path.join(my_args.results_dir, "%s.log" % my_args.docker_log)    
+                print("writing docker log to %s" % log_file)
+                with open(log_file, 'wb') as f:
+                    subprocess.run(docker_log_args,
+                                   stdout=f,
+                                   stderr=subprocess.STDOUT,
+                                   check=True, env=env_vars)  # nosec B404, B603
+            
             except subprocess.CalledProcessError:
-                print(f"Exception getting the docker log {my_args.docker_log}: {traceback.format_exc()}")
-
-        # Stop containers
-        docker_compose_containers("down", compose_files=compose_files, env_vars=env_vars)
+                print("Exception getting the docker log %s: %s" %
+                    (my_args.docker_log, traceback.format_exc()))        
+        
+        # stop all containers and camera-simulator
+        docker_compose_containers("down", compose_files=compose_files,
+                                  env_vars=env_vars)
 
     # collect metrics using copy-platform-metrics
     print("workloads finished...")
