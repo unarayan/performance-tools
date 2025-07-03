@@ -146,7 +146,7 @@ def main():
         plot_gpu_metrics(axs[idx + 2], gpu_file)
 
     plt.tight_layout()
-    output_image = os.path.join(root, 'combined_all_metrics.png')
+    output_image = os.path.join(root, 'plot_metrics.png')
     plt.savefig(output_image, dpi=300)
     plt.close()
 
