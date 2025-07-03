@@ -37,6 +37,7 @@ AVG_FPS_CONSTANT = "FPS"
 LAST_MODIFIED_LOG = "Last log update"
 TEXT_COUNT_CONSTANT = "Total Text count"
 BARCODE_COUNT_CONSTANT = "Total Barcode count"
+PIPELINE_LATENCY_CONSTANT = "Latency"
 
 class KPIExtractor(ABC):
     @abstractmethod
