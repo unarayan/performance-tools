@@ -12,7 +12,6 @@ benchmark-scripts/results/
 benchmark-scripts/rtsp_simple_server.log.txt
 
 envs
-scripts
 ovms-client
 profile-launcher
 stream_density.sh
