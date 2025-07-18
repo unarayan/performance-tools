@@ -12,7 +12,19 @@ def downsample(x, y, max_points=MAX_POINTS):
     step = max(1, len(x) // max_points)
     return x[::step], y[::step]
 
+def skip_if_invalid(ax, filepath, label):
+    if not os.path.isfile(filepath) or os.path.getsize(filepath) == 0:
+        ax.text(0.5, 0.5, f"No {label} data", ha='center', va='center')
+        ax.set_title(f"{label} Usage")
+        ax.axis('off')
+        return True
+    return False
+
 def plot_cpu_usage(ax, filepath):
+
+    if skip_if_invalid(ax, filepath, "CPU"):
+        return
+
     cpu_usage = []
     time_seconds = []
 
@@ -41,6 +53,10 @@ def plot_cpu_usage(ax, filepath):
         ax.axis('off')
 
 def plot_npu_usage(ax, filepath):
+
+    if skip_if_invalid(ax, filepath, "NPU"):
+        return
+
     usage_values = []
     with open(filepath, 'r') as file:
         reader = csv.DictReader(file)
@@ -73,6 +89,9 @@ def plot_gpu_metrics(ax, filepath):
         'Power W pkg': 'Power (W)',
         'RC6 %': 'Idle (RC6 %)'
     }
+
+    if skip_if_invalid(ax, filepath, "GPU"):
+        return
 
     metric_series = {metric: [] for metric in desc_map}
     time_series = []
@@ -131,11 +150,7 @@ def main():
     npu_csv = os.path.join(root, 'npu_usage.csv')
     gpu_files = sorted(glob.glob(os.path.join(root, 'igt*.json')))
 
-    if not gpu_files:
-        print("❌ No GPU files found (igt*.json)")
-        return
-
-    total_plots = 2 + len(gpu_files)  # CPU + NPU + each GPU
+    total_plots = 2 + max(1, len(gpu_files))  # CPU + NPU + each GPU
     fig, axs = plt.subplots(total_plots, 1, figsize=(20, total_plots * 4))  # Wide + Tall
 
     print("📊 Generating single consolidated graph...")
@@ -144,6 +159,8 @@ def main():
 
     for idx, gpu_file in enumerate(gpu_files):
         plot_gpu_metrics(axs[idx + 2], gpu_file)
+    else:
+        plot_gpu_metrics(axs[2], "")
 
     plt.tight_layout()
     output_image = os.path.join(root, 'plot_metrics.png')
