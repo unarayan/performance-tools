@@ -83,7 +83,7 @@ def check_non_empty_result_logs(num_pipelines, results_dir,
         print("INFO: checking presence of all pipeline log files... " +
               "retry: {}".format(retry))
         matching_files = glob.glob(os.path.join(
-            results_dir, f'pipeline*_{container_name}.log'))
+            results_dir, f'pipeline*_{container_name}*.log'))
         if len(matching_files) >= num_pipelines and all([
               os.path.isfile(file) and os.path.getsize(file) > 0
               for file in matching_files]):
@@ -125,7 +125,7 @@ def calculate_pipeline_latency(num_pipelines, results_dir, container_name):
     total_pipeline_latency = 0.0
     total_pipeline_latency_per_stream = 0.0
     matching_files = glob.glob(os.path.join(
-        results_dir, f'gst-launch*_{container_name}.log'))
+        results_dir, f'gst-launch*_{container_name}*.log'))
     print(f"DEBUG: num. of gst launch matching_files = {len(matching_files)}")
     latest_latency_logs = get_latest_pipeline_logs(
         num_pipelines, matching_files)
@@ -193,7 +193,7 @@ def calculate_total_fps(num_pipelines, results_dir, container_name):
     total_fps = 0
     total_fps_per_stream = 0
     matching_files = glob.glob(os.path.join(
-        results_dir, f'pipeline*_{container_name}.log'))
+        results_dir, f'pipeline*_{container_name}*.log'))
     print(f"DEBUG: num. of matching_files = {len(matching_files)}")
     latest_pipeline_logs = get_latest_pipeline_logs(
         num_pipelines, matching_files)
