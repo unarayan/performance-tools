@@ -1,0 +1,34 @@
+name: Send repository update event
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger-module-update-event:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send module update event to automated self checkout repo
+        run: |
+          echo "Sending repository dispatch event..."
+          
+          response=$(curl -w "HTTPSTATUS:%{http_code}" -s \
+            -H "Accept: application/vnd.github.nebula-preview+json" \
+            -H "Authorization: token ${{ secrets.EVENT_DISPATCH_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -X POST https://api.github.com/repos/intel-retail/automated-self-checkout/dispatches \
+            -d '{"event_type":"dispatch-event","client_payload":{"unit":false,"integration":true}}' 2>&1)
+          
+          # Extract HTTP status code and response body
+          http_code=$(echo "$response" | grep -o "HTTPSTATUS:[0-9]*" | cut -d: -f2)
+          response_body=$(echo "$response" | sed 's/HTTPSTATUS:[0-9]*$//')
+          
+          # Handle response codes - success or failure
+          if [ "$http_code" = "204" ]; then
+            echo "Success: Repository dispatch event sent successfully"
+          else
+            echo "Failure: HTTP $http_code"
+            echo "Response: $response_body"
+            exit 1
+          fi
