@@ -34,6 +34,8 @@ def plot_cpu_usage(ax, filepath):
         ax.set_title('CPU Usage Over Time')
         ax.set_xlabel('Time (seconds)')
         ax.set_ylabel('Usage (%)')
+        y_max = max(usage_ds or [0]) * 1.1
+        ax.set_ylim(bottom=0, top=y_max)
         ax.grid(True)
         ax.legend()
     else:
@@ -58,10 +60,40 @@ def plot_npu_usage(ax, filepath):
         ax.set_title('NPU Usage Over Time')
         ax.set_xlabel('Time (seconds)')
         ax.set_ylabel('Usage (%)')
+        y_max = max(usage_ds or [0]) * 1.1 
+        ax.set_ylim(bottom=0, top=y_max)
         ax.grid(True)
         ax.legend()
     else:
         ax.text(0.5, 0.5, "No NPU data", ha='center', va='center')
+        ax.axis('off')
+
+def plot_memory_usage(ax, filepath):
+    used_mem = []
+    time = 0
+    with open(filepath, 'r') as file:
+        for line in file:
+            if line.startswith('Mem:'):
+                parts = line.split()
+                if len(parts) >= 3:
+                    try:
+                        used = int(parts[2]) / (1024 * 1024)  # Convert to GB
+                        used_mem.append(used)
+                    except ValueError:
+                        continue
+    if used_mem:
+        time_series = list(range(len(used_mem)))
+        time_ds, mem_ds = downsample(time_series, used_mem)
+        ax.plot(time_ds, mem_ds, marker='o', color='green', label='Memory Used (GB)')
+        ax.set_title('Memory Usage Over Time')
+        ax.set_xlabel('Time (seconds)')
+        ax.set_ylabel('Memory Used (GB)')
+        y_max = max(mem_ds or [0]) * 1.1  # or mem_ds / val list etc.
+        ax.set_ylim(bottom=0, top=y_max)
+        ax.grid(True)
+        ax.legend()
+    else:
+        ax.text(0.5, 0.5, "No Memory data", ha='center', va='center')
         ax.axis('off')
 
 def plot_gpu_metrics(ax, filepath):
@@ -109,12 +141,13 @@ def plot_gpu_metrics(ax, filepath):
                 linewidth=1.5
             )
 
-        # Get device ID from filename like "igt0-7D55.json" → "7D55"
         basename = os.path.basename(filepath)
         device_part = basename.split('-')[-1].split('.')[0] if '-' in basename else "unknown"
         ax.set_title(f'GPU Usage Over Time (device={device_part})')
         ax.set_xlabel('Time (seconds)')
         ax.set_ylabel('Usage (%)')
+        y_max = max([max(metric_series[m][::step] or [0]) for m in desc_map])
+        ax.set_ylim(bottom=0, top=y_max + 2)
         ax.grid(True)
         ax.legend()
     else:
@@ -122,35 +155,43 @@ def plot_gpu_metrics(ax, filepath):
         ax.axis('off')
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate single consolidated plot for CPU, NPU, and all GPU usage.")
+    parser = argparse.ArgumentParser(description="Generate single consolidated plot for CPU, NPU, GPU, and Memory usage.")
     parser.add_argument('--dir', type=str, default='.', help='Root directory containing logs')
     args = parser.parse_args()
 
     root = os.path.abspath(args.dir)
     cpu_log = os.path.join(root, 'cpu_usage.log')
     npu_csv = os.path.join(root, 'npu_usage.csv')
+    mem_log = os.path.join(root, 'memory_usage.log')
     gpu_files = sorted(glob.glob(os.path.join(root, 'igt*.json')))
 
-    if not gpu_files:
-        print("❌ No GPU files found (igt*.json)")
-        return
+    total_plots = 3  # CPU + NPU + Memory
+    if gpu_files:
+        total_plots += len(gpu_files)
 
-    total_plots = 2 + len(gpu_files)  # CPU + NPU + each GPU
     fig, axs = plt.subplots(total_plots, 1, figsize=(20, total_plots * 4))  # Wide + Tall
 
     print("📊 Generating single consolidated graph...")
     plot_cpu_usage(axs[0], cpu_log)
     plot_npu_usage(axs[1], npu_csv)
+    plot_memory_usage(axs[2], mem_log)
 
-    for idx, gpu_file in enumerate(gpu_files):
-        plot_gpu_metrics(axs[idx + 2], gpu_file)
+    if gpu_files:
+        for idx, gpu_file in enumerate(gpu_files):
+            plot_gpu_metrics(axs[3 + idx], gpu_file)
+    else:
+        print("⚠️ No GPU metric files found (igt*.json). Skipping GPU plots.")
 
     plt.tight_layout()
     output_image = os.path.join(root, 'plot_metrics.png')
     plt.savefig(output_image, dpi=300)
     plt.close()
 
-    subprocess.run(["xdg-open", output_image])
+    try:
+        subprocess.run(["xdg-open", output_image])
+    except:
+        pass
+
     print(f"✅ Saved: {output_image}")
 
 if __name__ == '__main__':
